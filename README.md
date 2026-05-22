@@ -177,16 +177,6 @@ python manage.py runserver
 - **Invoice**: Click "Print" on any invoice
 - Both auto-open your browser's print dialog
 
-## Deployment
-
-### Render.com
-1. Push code to GitHub
-2. Create new Web Service on Render
-3. Connect repository
-4. Set Build Command: `pip install -r requirements.txt`
-5. Set Start Command: `python manage.py migrate --noinput && gunicorn clinic_emr.wsgi --bind 0.0.0.0:$PORT`
-6. Deploy
-
 ### Fully Offline
 No internet is needed once the application is running. All frontend libraries are included in `/static/vendor/`. The SQLite database stores everything locally.
 
