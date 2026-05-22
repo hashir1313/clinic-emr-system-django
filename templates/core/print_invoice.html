@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice {{ invoice.invoice_id }}</title>
+  <script>window.onload = function() { window.print(); };</script>
+  <style>
+    @page { size: A4; margin: 12mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      color: #111;
+      font-size: 11pt;
+      line-height: 1.4;
+      background: #f2f2f2;
+      display: flex; justify-content: center; padding: 12px;
+    }
+    .page {
+      width: 210mm; min-height: 277mm; background: #fff;
+      padding: 14mm; border: 1px solid #ddd;
+    }
+    .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 14px; }
+    .clinic-name { font-size: 24px; font-weight: 700; }
+    .subtitle { font-size: 13px; color: #555; margin-top: 2px; }
+    .invoice-title { font-size: 18px; font-weight: bold; text-align: center; margin: 10px 0; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; margin-bottom: 14px; }
+    .info-group { padding: 6px 0; }
+    .info-label { font-size: 10px; font-weight: bold; color: #666; text-transform: uppercase; }
+    .info-value { font-size: 12px; margin-top: 1px; }
+    table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+    th { background: #f4f4f4; text-align: left; padding: 8px 10px; font-size: 11px; text-transform: uppercase; border-bottom: 2px solid #000; }
+    td { padding: 7px 10px; border-bottom: 1px solid #ddd; font-size: 12px; }
+    .text-right { text-align: right; }
+    .totals { margin-left: auto; width: 280px; margin-top: 10px; }
+    .totals tr td { border: none; padding: 4px 8px; }
+    .totals .label { text-align: right; color: #555; }
+    .totals .value { text-align: right; font-weight: bold; }
+    .totals .grand td { font-size: 16px; font-weight: bold; border-top: 2px solid #000; padding-top: 8px; }
+    .status-badge {
+      display: inline-block; padding: 2px 10px; border-radius: 3px;
+      font-size: 11px; font-weight: bold;
+    }
+    .status-paid { background: #d4edda; color: #155724; }
+    .status-unpaid { background: #f8d7da; color: #721c24; }
+    .status-partial { background: #fff3cd; color: #856404; }
+    .footer { margin-top: 24px; border-top: 1px solid #ddd; padding-top: 10px; display: flex; justify-content: space-between; align-items: end; }
+    .signature { text-align: center; width: 200px; }
+    .signature-line { border-top: 1px solid #000; padding-top: 5px; font-size: 11px; margin-top: 35px; font-weight: bold; }
+    .footer-note { font-size: 10px; color: #888; margin-top: 8px; text-align: center; }
+    .print-btn { position: fixed; top: 15px; right: 15px; background: #111; color: white; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+    @media print {
+      body { background: white; padding: 0; }
+      .page { border: none; width: 100%; min-height: auto; padding: 0; }
+      .print-btn { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <button class="print-btn" onclick="window.print()">Print</button>
+  <div class="page">
+    <div class="header">
+      <div class="clinic-name">{{ clinic.name }}</div>
+      {% if clinic.address %}<div class="subtitle">{{ clinic.address }}</div>{% endif %}
+      {% if clinic.phone or clinic.email %}
+      <div class="subtitle">{% if clinic.phone %}Phone: {{ clinic.phone }}{% endif %}{% if clinic.phone and clinic.email %} | {% endif %}{% if clinic.email %}{{ clinic.email }}{% endif %}</div>
+      {% endif %}
+    </div>
+
+    <div class="invoice-title">INVOICE</div>
+
+    <div class="info-grid">
+      <div class="info-group">
+        <div class="info-label">Invoice Number</div>
+        <div class="info-value">{{ invoice.invoice_id }}</div>
+        <div class="info-label" style="margin-top:6px;">Issue Date</div>
+        <div class="info-value">{{ invoice.issue_date|date:"F d, Y" }}</div>
+        {% if invoice.due_date %}
+        <div class="info-label" style="margin-top:6px;">Due Date</div>
+        <div class="info-value">{{ invoice.due_date|date:"F d, Y" }}</div>
+        {% endif %}
+      </div>
+      <div class="info-group" style="text-align:right;">
+        <div class="info-label">Patient</div>
+        <div class="info-value" style="font-size:14px;">{{ invoice.patient.full_name }}</div>
+        <div class="info-value">{{ invoice.patient.patient_id }}</div>
+        {% if invoice.patient.phone %}<div class="info-value">{{ invoice.patient.phone }}</div>{% endif %}
+        <div style="margin-top:6px;">
+          <span class="status-badge {% if invoice.payment_status == 'paid' %}status-paid{% elif invoice.payment_status == 'partial' %}status-partial{% else %}status-unpaid{% endif %}">
+            {{ invoice.get_payment_status_display }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width:50%;">Item</th>
+          <th style="width:10%;">Qty</th>
+          <th style="width:20%;" class="text-right">Unit Price</th>
+          <th style="width:20%;" class="text-right">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td>{{ item.item_name }}</td>
+          <td>{{ item.quantity }}</td>
+          <td class="text-right">${{ item.unit_price|floatformat:2 }}</td>
+          <td class="text-right">${{ item.total_price|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <table class="totals">
+      <tr>
+        <td class="label">Consultation Fee:</td>
+        <td class="value">${{ invoice.consultation_fee|floatformat:2 }}</td>
+      </tr>
+      <tr>
+        <td class="label">Subtotal:</td>
+        <td class="value">${{ invoice.subtotal|floatformat:2 }}</td>
+      </tr>
+      {% if invoice.discount > 0 %}
+      <tr>
+        <td class="label">Discount:</td>
+        <td class="value" style="color:#c00;">-${{ invoice.discount|floatformat:2 }}</td>
+      </tr>
+      {% endif %}
+      {% if invoice.tax > 0 %}
+      <tr>
+        <td class="label">Tax:</td>
+        <td class="value">${{ invoice.tax|floatformat:2 }}</td>
+      </tr>
+      {% endif %}
+      <tr class="grand">
+        <td class="label">Total Amount:</td>
+        <td class="value">${{ invoice.total_amount|floatformat:2 }}</td>
+      </tr>
+      <tr>
+        <td class="label">Paid Amount:</td>
+        <td class="value" style="color:#155724;">${{ invoice.paid_amount|floatformat:2 }}</td>
+      </tr>
+      <tr>
+        <td class="label">Remaining:</td>
+        <td class="value" style="color:{% if invoice.remaining_amount > 0 %}#c00{% else %}inherit{% endif %};">${{ invoice.remaining_amount|floatformat:2 }}</td>
+      </tr>
+    </table>
+
+    {% if invoice.notes %}
+    <div style="margin-top:14px;">
+      <div class="info-label">Notes</div>
+      <div style="font-size:12px;margin-top:3px;">{{ invoice.notes }}</div>
+    </div>
+    {% endif %}
+
+    <div class="footer">
+      <div class="info-group">
+        <div class="info-label">Doctor</div>
+        <div class="info-value" style="font-size:14px;">{{ clinic.doctor_name|default:"—" }}</div>
+      </div>
+      <div class="signature">
+        <div class="signature-line">Authorized Signature</div>
+      </div>
+    </div>
+
+    <div class="footer-note">Thank you for your visit. This is a computer-generated invoice.</div>
+    <div class="footer-note">Generated on: {% now "F d, Y H:i" %}</div>
+  </div>
+</body>
+</html>

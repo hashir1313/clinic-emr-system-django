@@ -4,12 +4,16 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
+from django.conf import settings
 from django.db.models import Q
 from django.views.decorators.http import require_POST
-from .models import Patient, Visit, Prescription, ClinicInfo
-from .forms import PatientForm, VisitForm, ClinicForm
+from .models import Patient, Visit, Prescription, ClinicInfo, Invoice, InvoiceItem
+from .forms import PatientForm, VisitForm, ClinicForm, InvoiceForm, InvoiceItemForm
+from django.db.models import Sum, Count, Q, DecimalField
+from django.db.models.functions import TruncMonth
+from decimal import Decimal
 from utils.helpers import save_prescription_files, delete_prescription_files
-from utils.printing import generate_visit_pdf
+from utils.printing import render_print_html
 
 
 def setup(request):
@@ -42,13 +46,25 @@ def login_redirect(request):
 def dashboard(request):
     total_patients = Patient.objects.count()
     total_visits = Visit.objects.count()
+    total_earnings = Invoice.objects.aggregate(total=Sum('total_amount'))['total'] or Decimal('0.00')
+    total_paid = Invoice.objects.aggregate(total=Sum('paid_amount'))['total'] or Decimal('0.00')
+    pending_payments = Invoice.objects.filter(payment_status__in=['unpaid', 'partial']).aggregate(total=Sum('remaining_amount'))['total'] or Decimal('0.00')
+    paid_count = Invoice.objects.filter(payment_status='paid').count()
+    unpaid_count = Invoice.objects.filter(payment_status__in=['unpaid', 'partial']).count()
     recent_patients = Patient.objects.order_by('-created_at')[:5]
     recent_visits = Visit.objects.select_related('patient').order_by('-visit_date')[:5]
+    recent_invoices = Invoice.objects.select_related('patient').order_by('-issue_date')[:5]
     context = {
         'total_patients': total_patients,
         'total_visits': total_visits,
+        'total_earnings': total_earnings,
+        'total_paid': total_paid,
+        'pending_payments': pending_payments,
+        'paid_count': paid_count,
+        'unpaid_count': unpaid_count,
         'recent_patients': recent_patients,
         'recent_visits': recent_visits,
+        'recent_invoices': recent_invoices,
         'section': 'dashboard',
     }
     return render(request, 'core/dashboard.html', context)
@@ -153,9 +169,17 @@ def patient_delete(request, pk):
 def patient_detail(request, pk):
     patient = get_object_or_404(Patient, pk=pk)
     visits = patient.visits.select_related('prescription').all()
+    invoices = patient.invoices.all()
+    total_billed = invoices.aggregate(total=Sum('total_amount'))['total'] or Decimal('0.00')
+    total_paid = invoices.aggregate(total=Sum('paid_amount'))['total'] or Decimal('0.00')
+    pending_due = invoices.filter(payment_status__in=['unpaid', 'partial']).aggregate(total=Sum('remaining_amount'))['total'] or Decimal('0.00')
     return render(request, 'core/patient_detail.html', {
         'patient': patient,
         'visits': visits,
+        'invoices': invoices,
+        'total_billed': total_billed,
+        'total_paid': total_paid,
+        'pending_due': pending_due,
         'section': 'patients',
     })
 
@@ -271,10 +295,8 @@ def prescription_load(request, visit_pk):
 @login_required
 def visit_print(request, pk):
     visit = get_object_or_404(Visit.objects.select_related('patient'), pk=pk)
-    pdf = generate_visit_pdf(visit)
-    response = HttpResponse(pdf, content_type='application/pdf')
-    response['Content-Disposition'] = f'inline; filename="visit_{visit.id}.pdf"'
-    return response
+    html = render_print_html(visit)
+    return HttpResponse(html)
 
 
 @login_required
@@ -293,3 +315,154 @@ def clinic_settings(request):
         'clinic': clinic,
         'section': 'settings',
     })
+
+
+@login_required
+def invoice_list(request):
+    query = request.GET.get('q', '')
+    status_filter = request.GET.get('status', '')
+    invoices = Invoice.objects.select_related('patient').all()
+    if query:
+        invoices = invoices.filter(
+            Q(invoice_id__icontains=query) |
+            Q(patient__full_name__icontains=query)
+        )
+    if status_filter:
+        invoices = invoices.filter(payment_status=status_filter)
+    total_earnings = invoices.aggregate(total=Sum('total_amount'))['total'] or Decimal('0.00')
+    total_paid = invoices.aggregate(total=Sum('paid_amount'))['total'] or Decimal('0.00')
+    context = {
+        'invoices': invoices,
+        'query': query,
+        'status_filter': status_filter,
+        'total_earnings': total_earnings,
+        'total_paid': total_paid,
+        'section': 'billing',
+    }
+    return render(request, 'core/invoice_list.html', context)
+
+
+@login_required
+def invoice_create(request, patient_pk=None, visit_pk=None):
+    patient = None
+    visit = None
+    if patient_pk:
+        patient = get_object_or_404(Patient, pk=patient_pk)
+    if visit_pk:
+        visit = get_object_or_404(Visit.objects.select_related('patient'), pk=visit_pk)
+        patient = visit.patient
+
+    if request.method == 'POST':
+        form = InvoiceForm(request.POST)
+        if form.is_valid():
+            invoice = form.save(commit=False)
+            if 'patient' in form.cleaned_data and form.cleaned_data['patient']:
+                invoice.patient = form.cleaned_data['patient']
+            invoice.save()
+            messages.success(request, 'Invoice created. Add items now.')
+            return redirect('invoice_update', pk=invoice.pk)
+    else:
+        initial = {}
+        if visit:
+            initial['visit'] = visit
+        if patient:
+            initial['patient'] = patient
+        form = InvoiceForm(initial=initial)
+        if patient:
+            form.fields['visit'].queryset = patient.visits.all()
+
+    return render(request, 'core/invoice_form.html', {
+        'form': form,
+        'patient': patient,
+        'visit': visit,
+        'section': 'billing',
+    })
+
+
+@login_required
+def invoice_update(request, pk):
+    invoice = get_object_or_404(Invoice.objects.select_related('patient'), pk=pk)
+    items = invoice.items.all()
+
+    if request.method == 'POST':
+        form = InvoiceForm(request.POST, instance=invoice)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Invoice updated.')
+            return redirect('invoice_detail', pk=invoice.pk)
+    else:
+        form = InvoiceForm(instance=invoice)
+        form.fields['visit'].queryset = invoice.patient.visits.all()
+
+    return render(request, 'core/invoice_form.html', {
+        'form': form,
+        'invoice': invoice,
+        'items': items,
+        'patient': invoice.patient,
+        'section': 'billing',
+    })
+
+
+@require_POST
+@login_required
+def invoice_add_item(request, invoice_pk):
+    invoice = get_object_or_404(Invoice, pk=invoice_pk)
+    form = InvoiceItemForm(request.POST)
+    if form.is_valid():
+        item = form.save(commit=False)
+        item.invoice = invoice
+        item.save()
+        messages.success(request, 'Item added.')
+    else:
+        for err in form.errors.values():
+            messages.error(request, err)
+    return redirect('invoice_update', pk=invoice.pk)
+
+
+@login_required
+def invoice_delete_item(request, invoice_pk, item_pk):
+    item = get_object_or_404(InvoiceItem, pk=item_pk, invoice_id=invoice_pk)
+    if request.method == 'POST':
+        item.delete()
+        messages.success(request, 'Item removed.')
+    return redirect('invoice_update', pk=invoice_pk)
+
+
+@login_required
+def invoice_detail(request, pk):
+    invoice = get_object_or_404(Invoice.objects.select_related('patient', 'visit'), pk=pk)
+    items = invoice.items.all()
+    return render(request, 'core/invoice_detail.html', {
+        'invoice': invoice,
+        'items': items,
+        'section': 'billing',
+    })
+
+
+@login_required
+def invoice_delete(request, pk):
+    invoice = get_object_or_404(Invoice, pk=pk)
+    patient_pk = invoice.patient.pk
+    if request.method == 'POST':
+        invoice.delete()
+        messages.success(request, 'Invoice deleted.')
+        return redirect('patient_detail', pk=patient_pk)
+    return render(request, 'core/invoice_confirm_delete.html', {
+        'invoice': invoice,
+        'section': 'billing',
+    })
+
+
+@login_required
+def invoice_print(request, pk):
+    invoice = get_object_or_404(Invoice.objects.select_related('patient', 'visit'), pk=pk)
+    items = invoice.items.all()
+    clinic = ClinicInfo.get()
+    from django.template.loader import render_to_string
+    html = render_to_string('core/print_invoice.html', {
+        'invoice': invoice,
+        'items': items,
+        'clinic': clinic,
+        'media_url': settings.MEDIA_URL,
+    })
+    return HttpResponse(html)

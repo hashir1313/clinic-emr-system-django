@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Clinic EMR{% endblock %}</title>
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="/static/vendor/htmx/htmx.min.js"></script>
+    <script src="/static/vendor/htmx/json-enc.js"></script>
+    <script src="/static/vendor/fabric/fabric.min.js"></script>
+    <script src="/static/vendor/alpine/alpine.min.js" defer></script>
+    <link href="/static/vendor/tailwind/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
     {% block extra_head %}{% endblock %}
 </head>
@@ -21,6 +21,7 @@
                     <a href="{% url 'dashboard' %}" class="font-bold text-lg">Clinic EMR</a>
                     <a href="{% url 'dashboard' %}" class="{% if section == 'dashboard' %}bg-blue-700{% endif %} px-3 py-1 rounded text-sm hover:bg-blue-700">Dashboard</a>
                     <a href="{% url 'patient_list' %}" class="{% if section == 'patients' %}bg-blue-700{% endif %} px-3 py-1 rounded text-sm hover:bg-blue-700">Patients</a>
+                    <a href="{% url 'invoice_list' %}" class="{% if section == 'billing' %}bg-blue-700{% endif %} px-3 py-1 rounded text-sm hover:bg-blue-700">Billing</a>
                     <a href="{% url 'clinic_settings' %}" class="{% if section == 'settings' %}bg-blue-700{% endif %} px-3 py-1 rounded text-sm hover:bg-blue-700">Settings</a>
                 </div>
                 <div class="flex items-center space-x-4">

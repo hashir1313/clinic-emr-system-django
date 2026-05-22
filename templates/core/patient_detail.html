@@ -10,11 +10,12 @@
     <div class="flex gap-2">
         <a href="{% url 'patient_update' patient.pk %}" class="bg-green-700 text-white px-4 py-2 rounded text-sm hover:bg-green-600">Edit</a>
         <a href="{% url 'visit_create' patient.pk %}" class="bg-blue-800 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">+ New Visit</a>
+        <a href="{% url 'invoice_create_for_patient' patient.pk %}" class="bg-indigo-700 text-white px-4 py-2 rounded text-sm hover:bg-indigo-600">+ Invoice</a>
         <a href="{% url 'patient_delete' patient.pk %}" class="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700">Delete</a>
     </div>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
     <div class="bg-white p-4 rounded-lg shadow-sm border">
         <h3 class="text-gray-500 text-xs uppercase tracking-wide mb-2">Demographics</h3>
         <div class="space-y-1 text-sm">
@@ -37,6 +38,14 @@
             <p><span class="text-gray-500">Registered:</span> {{ patient.created_at|date:"Y-m-d" }}</p>
         </div>
     </div>
+    <div class="bg-white p-4 rounded-lg shadow-sm border">
+        <h3 class="text-gray-500 text-xs uppercase tracking-wide mb-2">Billing Summary</h3>
+        <div class="space-y-1 text-sm">
+            <p><span class="text-gray-500">Total Billed:</span> <span class="font-medium">${{ total_billed|floatformat:2 }}</span></p>
+            <p><span class="text-gray-500">Paid:</span> <span class="font-medium text-green-700">${{ total_paid|floatformat:2 }}</span></p>
+            <p><span class="text-gray-500">Pending:</span> <span class="font-medium text-red-700">${{ pending_due|floatformat:2 }}</span></p>
+        </div>
+    </div>
 </div>
 
 {% if patient.medical_history %}
@@ -46,34 +55,72 @@
 </div>
 {% endif %}
 
-<div class="bg-white rounded-lg shadow-sm border">
-    <div class="px-6 py-4 border-b">
-        <h3 class="font-semibold text-gray-700">Visit History</h3>
-    </div>
-    <div class="p-6">
-        {% if visits %}
-        <div class="space-y-4">
-            {% for visit in visits %}
-            <div class="border rounded p-4 hover:bg-gray-50">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-sm text-gray-500">Visit #{{ visit.id }} - {{ visit.visit_date|date:"Y-m-d H:i" }}</p>
-                        {% if visit.symptoms %}<p class="text-sm mt-1"><span class="font-medium">Symptoms:</span> {{ visit.symptoms|truncatewords:20 }}</p>{% endif %}
-                        {% if visit.diagnosis %}<p class="text-sm"><span class="font-medium">Diagnosis:</span> {{ visit.diagnosis|truncatewords:20 }}</p>{% endif %}
-                        {% if visit.follow_up_date %}<p class="text-sm text-orange-600">Follow-up: {{ visit.follow_up_date }}</p>{% endif %}
-                    </div>
-                    <div class="flex gap-2">
-                        <a href="{% url 'visit_detail' visit.pk %}" class="text-blue-600 text-sm hover:underline">View</a>
-                        <a href="{% url 'prescription_drawing' visit.pk %}" class="text-purple-600 text-sm hover:underline">Prescription</a>
-                        <a href="{% url 'visit_print' visit.pk %}" class="text-green-600 text-sm hover:underline">Print</a>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow-sm border">
+        <div class="px-6 py-4 border-b">
+            <h3 class="font-semibold text-gray-700">Visit History</h3>
+        </div>
+        <div class="p-4">
+            {% if visits %}
+            <div class="space-y-3">
+                {% for visit in visits %}
+                <div class="border rounded p-3 hover:bg-gray-50">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm text-gray-500">Visit #{{ visit.id }} - {{ visit.visit_date|date:"Y-m-d H:i" }}</p>
+                            {% if visit.symptoms %}<p class="text-sm mt-1"><span class="font-medium">Symptoms:</span> {{ visit.symptoms|truncatewords:15 }}</p>{% endif %}
+                            {% if visit.diagnosis %}<p class="text-sm"><span class="font-medium">Diagnosis:</span> {{ visit.diagnosis|truncatewords:15 }}</p>{% endif %}
+                        </div>
+                        <div class="flex gap-2 text-xs">
+                            <a href="{% url 'visit_detail' visit.pk %}" class="text-blue-600 hover:underline">View</a>
+                            <a href="{% url 'prescription_drawing' visit.pk %}" class="text-purple-600 hover:underline">Rx</a>
+                            <a href="{% url 'visit_print' visit.pk %}" class="text-green-600 hover:underline">Print</a>
+                            <a href="{% url 'invoice_create_for_visit' patient.pk visit.pk %}" class="text-indigo-600 hover:underline">Bill</a>
+                        </div>
                     </div>
                 </div>
+                {% endfor %}
             </div>
-            {% endfor %}
+            {% else %}
+            <p class="text-gray-500 text-center py-4 text-sm">No visits recorded. <a href="{% url 'visit_create' patient.pk %}" class="text-blue-600">Create one</a>.</p>
+            {% endif %}
         </div>
-        {% else %}
-        <p class="text-gray-500 text-center py-4">No visits recorded. <a href="{% url 'visit_create' patient.pk %}" class="text-blue-600">Create one</a>.</p>
-        {% endif %}
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border">
+        <div class="px-6 py-4 border-b flex justify-between items-center">
+            <h3 class="font-semibold text-gray-700">Invoice History</h3>
+            <a href="{% url 'invoice_create_for_patient' patient.pk %}" class="text-indigo-600 text-sm">+ New Invoice</a>
+        </div>
+        <div class="p-4">
+            {% if invoices %}
+            <div class="space-y-3">
+                {% for inv in invoices %}
+                <div class="border rounded p-3 hover:bg-gray-50">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm font-medium">{{ inv.invoice_id }}</p>
+                            <p class="text-xs text-gray-500">{{ inv.issue_date|date:"Y-m-d" }}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-medium">${{ inv.total_amount|floatformat:2 }}</p>
+                            <span class="text-xs px-2 py-0.5 rounded {% if inv.payment_status == 'paid' %}bg-green-100 text-green-800{% elif inv.payment_status == 'partial' %}bg-yellow-100 text-yellow-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                {{ inv.get_payment_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="mt-2 flex gap-2 text-xs">
+                        <a href="{% url 'invoice_detail' inv.pk %}" class="text-blue-600 hover:underline">View</a>
+                        <a href="{% url 'invoice_update' inv.pk %}" class="text-green-600 hover:underline">Edit</a>
+                        <a href="{% url 'invoice_print' inv.pk %}" class="text-indigo-600 hover:underline">Print</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-center py-4 text-sm">No invoices. <a href="{% url 'invoice_create_for_patient' patient.pk %}" class="text-indigo-600">Create one</a>.</p>
+            {% endif %}
+        </div>
     </div>
 </div>
 {% endblock %}

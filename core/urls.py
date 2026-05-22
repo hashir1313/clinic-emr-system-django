@@ -35,4 +35,16 @@ urlpatterns = [
 
     # HTMX search
     path('htmx/patient-search/', views.htmx_patient_search, name='htmx_patient_search'),
+
+    # Billing / Invoices
+    path('billing/', views.invoice_list, name='invoice_list'),
+    path('billing/create/', views.invoice_create, name='invoice_create'),
+    path('billing/create/<int:patient_pk>/', views.invoice_create, name='invoice_create_for_patient'),
+    path('billing/create/<int:patient_pk>/<int:visit_pk>/', views.invoice_create, name='invoice_create_for_visit'),
+    path('billing/<int:pk>/', views.invoice_detail, name='invoice_detail'),
+    path('billing/<int:pk>/edit/', views.invoice_update, name='invoice_update'),
+    path('billing/<int:pk>/delete/', views.invoice_delete, name='invoice_delete'),
+    path('billing/<int:pk>/print/', views.invoice_print, name='invoice_print'),
+    path('billing/<int:invoice_pk>/items/add/', views.invoice_add_item, name='invoice_add_item'),
+    path('billing/<int:invoice_pk>/items/<int:item_pk>/delete/', views.invoice_delete_item, name='invoice_delete_item'),
 ]

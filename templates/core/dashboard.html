@@ -1,54 +1,53 @@
 {% extends "base.html" %}
 {% block title %}Dashboard - Clinic EMR{% endblock %}
 {% block content %}
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-    <div class="bg-white p-6 rounded-lg shadow-sm border">
-        <h3 class="text-gray-500 text-sm uppercase tracking-wide">Total Patients</h3>
-        <p class="text-3xl font-bold text-blue-800 mt-2">{{ total_patients }}</p>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white p-4 rounded-lg shadow-sm border">
+        <h3 class="text-gray-500 text-xs uppercase tracking-wide">Patients</h3>
+        <p class="text-2xl font-bold text-blue-800 mt-1">{{ total_patients }}</p>
     </div>
-    <div class="bg-white p-6 rounded-lg shadow-sm border">
-        <h3 class="text-gray-500 text-sm uppercase tracking-wide">Total Visits</h3>
-        <p class="text-3xl font-bold text-green-800 mt-2">{{ total_visits }}</p>
+    <div class="bg-white p-4 rounded-lg shadow-sm border">
+        <h3 class="text-gray-500 text-xs uppercase tracking-wide">Visits</h3>
+        <p class="text-2xl font-bold text-green-800 mt-1">{{ total_visits }}</p>
     </div>
-    <div class="bg-white p-6 rounded-lg shadow-sm border">
-        <h3 class="text-gray-500 text-sm uppercase tracking-wide">Quick Actions</h3>
-        <div class="mt-2 space-y-2">
-            <a href="{% url 'patient_create' %}" class="block text-center bg-blue-800 text-white py-2 rounded text-sm hover:bg-blue-700">New Patient</a>
-            <a href="{% url 'patient_list' %}" class="block text-center bg-gray-200 text-gray-700 py-2 rounded text-sm hover:bg-gray-300">Find Patient</a>
-        </div>
+    <div class="bg-white p-4 rounded-lg shadow-sm border">
+        <h3 class="text-gray-500 text-xs uppercase tracking-wide">Total Earnings</h3>
+        <p class="text-2xl font-bold text-indigo-800 mt-1">${{ total_earnings|floatformat:2 }}</p>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow-sm border">
+        <h3 class="text-gray-500 text-xs uppercase tracking-wide">Pending</h3>
+        <p class="text-2xl font-bold text-red-800 mt-1">${{ pending_payments|floatformat:2 }}</p>
     </div>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
     <div class="bg-white rounded-lg shadow-sm border">
         <div class="px-6 py-4 border-b flex justify-between items-center">
             <h3 class="font-semibold text-gray-700">Recent Patients</h3>
             <a href="{% url 'patient_list' %}" class="text-blue-600 text-sm">View All</a>
         </div>
-        <div class="p-6">
+        <div class="p-4">
             {% if recent_patients %}
             <table class="w-full text-sm">
                 <thead>
                     <tr class="text-left text-gray-500">
-                        <th class="pb-2">ID</th>
                         <th class="pb-2">Name</th>
-                        <th class="pb-2">Age</th>
-                        <th class="pb-2">Gender</th>
+                        <th class="pb-2">ID</th>
+                        <th class="pb-2">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for p in recent_patients %}
                     <tr class="border-t">
-                        <td class="py-2 text-gray-500">{{ p.patient_id }}</td>
                         <td class="py-2"><a href="{% url 'patient_detail' p.pk %}" class="text-blue-600 hover:underline">{{ p.full_name }}</a></td>
-                        <td class="py-2">{{ p.age }}</td>
-                        <td class="py-2">{{ p.get_gender_display }}</td>
+                        <td class="py-2 text-gray-500">{{ p.patient_id }}</td>
+                        <td class="py-2"><a href="{% url 'invoice_create_for_patient' p.pk %}" class="text-green-600 hover:underline text-xs">Bill</a></td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
             {% else %}
-            <p class="text-gray-500 text-center py-4">No patients yet. <a href="{% url 'patient_create' %}" class="text-blue-600">Add one</a>.</p>
+            <p class="text-gray-500 text-center py-4 text-sm">No patients yet. <a href="{% url 'patient_create' %}" class="text-blue-600">Add one</a>.</p>
             {% endif %}
         </div>
     </div>
@@ -57,31 +56,63 @@
         <div class="px-6 py-4 border-b">
             <h3 class="font-semibold text-gray-700">Recent Visits</h3>
         </div>
-        <div class="p-6">
+        <div class="p-4">
             {% if recent_visits %}
             <table class="w-full text-sm">
                 <thead>
                     <tr class="text-left text-gray-500">
                         <th class="pb-2">Patient</th>
                         <th class="pb-2">Date</th>
-                        <th class="pb-2">Actions</th>
+                        <th class="pb-2">Print</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for v in recent_visits %}
                     <tr class="border-t">
                         <td class="py-2"><a href="{% url 'patient_detail' v.patient.pk %}" class="text-blue-600 hover:underline">{{ v.patient.full_name }}</a></td>
-                        <td class="py-2 text-gray-600">{{ v.visit_date|date:"Y-m-d H:i" }}</td>
+                        <td class="py-2 text-gray-500 text-xs">{{ v.visit_date|date:"Y-m-d" }}</td>
+                        <td class="py-2"><a href="{% url 'visit_print' v.pk %}" class="text-green-600 hover:underline text-xs">Print</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-gray-500 text-center py-4 text-sm">No visits recorded.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border">
+        <div class="px-6 py-4 border-b flex justify-between items-center">
+            <h3 class="font-semibold text-gray-700">Recent Invoices</h3>
+            <a href="{% url 'invoice_list' %}" class="text-blue-600 text-sm">View All</a>
+        </div>
+        <div class="p-4">
+            {% if recent_invoices %}
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-left text-gray-500">
+                        <th class="pb-2">Invoice</th>
+                        <th class="pb-2">Amount</th>
+                        <th class="pb-2">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inv in recent_invoices %}
+                    <tr class="border-t">
+                        <td class="py-2"><a href="{% url 'invoice_detail' inv.pk %}" class="text-blue-600 hover:underline">{{ inv.invoice_id }}</a></td>
+                        <td class="py-2">${{ inv.total_amount|floatformat:2 }}</td>
                         <td class="py-2">
-                            <a href="{% url 'visit_detail' v.pk %}" class="text-blue-600 hover:underline mr-2">View</a>
-                            <a href="{% url 'visit_print' v.pk %}" class="text-green-600 hover:underline">Print</a>
+                            <span class="text-xs px-2 py-0.5 rounded {% if inv.payment_status == 'paid' %}bg-green-100 text-green-800{% elif inv.payment_status == 'partial' %}bg-yellow-100 text-yellow-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                {{ inv.get_payment_status_display }}
+                            </span>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
             {% else %}
-            <p class="text-gray-500 text-center py-4">No visits recorded.</p>
+            <p class="text-gray-500 text-center py-4 text-sm">No invoices yet.</p>
             {% endif %}
         </div>
     </div>

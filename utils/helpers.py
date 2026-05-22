@@ -24,14 +24,17 @@ def save_prescription_files(canvas_image_data, canvas_json, visit_id):
 
     if canvas_json:
         presc.canvas_json = canvas_json
+        json_filename = f"prescription_{visit_id}_{uuid.uuid4().hex[:8]}.json"
+        presc.json_file.save(json_filename, ContentFile(canvas_json.encode('utf-8')), save=False)
 
     presc.save()
     return presc
 
 
 def delete_prescription_files(prescription):
-    if prescription.image and prescription.image.name:
-        path = os.path.join(settings.MEDIA_ROOT, prescription.image.name)
-        if os.path.exists(path):
-            os.remove(path)
+    for f in [prescription.image, prescription.json_file]:
+        if f and f.name:
+            path = os.path.join(settings.MEDIA_ROOT, f.name)
+            if os.path.exists(path):
+                os.remove(path)
     prescription.delete()
