@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load core_extras %}
+{% block title %}Patients - Clinic EMR{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Patients</h1>
+    <a href="{% url 'patient_create' %}" class="bg-blue-800 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">+ Add Patient</a>
+</div>
+
+<div class="bg-white rounded-lg shadow-sm border mb-6">
+    <div class="p-4 border-b">
+        <form hx-get="{% url 'htmx_patient_search' %}" hx-target="#patient-table" hx-trigger="keyup delay:300ms" hx-swap="innerHTML" class="flex gap-2">
+            <input type="text" name="q" value="{{ query }}" placeholder="Search by name, phone, or patient ID..."
+                   class="flex-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm">
+            <button type="submit" class="bg-gray-200 px-4 py-2 rounded text-sm hover:bg-gray-300">Search</button>
+        </form>
+    </div>
+    <div class="p-4" id="patient-table">
+        {% include "core/_patient_table.html" %}
+    </div>
+</div>
+{% endblock %}

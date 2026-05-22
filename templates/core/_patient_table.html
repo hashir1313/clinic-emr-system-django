@@ -1,0 +1,33 @@
+{% load core_extras %}
+{% if patients %}
+<table class="w-full text-sm">
+    <thead>
+        <tr class="text-left text-gray-500 border-b">
+            <th class="pb-3 font-medium">Patient ID</th>
+            <th class="pb-3 font-medium">Name</th>
+            <th class="pb-3 font-medium">Age</th>
+            <th class="pb-3 font-medium">Gender</th>
+            <th class="pb-3 font-medium">Phone</th>
+            <th class="pb-3 font-medium">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for patient in patients %}
+        <tr class="border-b hover:bg-gray-50">
+            <td class="py-3 text-gray-500">{{ patient.patient_id }}</td>
+            <td class="py-3"><a href="{% url 'patient_detail' patient.pk %}" class="text-blue-600 hover:underline font-medium">{{ patient.full_name }}</a></td>
+            <td class="py-3">{{ patient.age }}</td>
+            <td class="py-3">{{ patient.get_gender_display }}</td>
+            <td class="py-3">{{ patient.phone|default:"-" }}</td>
+            <td class="py-3 space-x-2">
+                <a href="{% url 'patient_detail' patient.pk %}" class="text-blue-600 hover:underline">View</a>
+                <a href="{% url 'patient_update' patient.pk %}" class="text-green-600 hover:underline">Edit</a>
+                <a href="{% url 'visit_create' patient.pk %}" class="text-purple-600 hover:underline">New Visit</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="text-gray-500 text-center py-8">No patients found.</p>
+{% endif %}

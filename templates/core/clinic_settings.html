@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Settings - Clinic EMR{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Clinic Settings</h1>
+    <div class="bg-white rounded-lg shadow-sm border p-6">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-1">Clinic Name</label>
+                    {{ form.name }}
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-1">Doctor Name</label>
+                    {{ form.doctor_name }}
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-1">Phone</label>
+                    {{ form.phone }}
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-1">Email</label>
+                    {{ form.email }}
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-1">Address</label>
+                    {{ form.address }}
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-1">Logo</label>
+                    {% if clinic.logo %}
+                    <div class="mb-2">
+                        <img src="{{ clinic.logo.url }}" alt="Logo" class="h-16 border rounded">
+                    </div>
+                    {% endif %}
+                    <input type="file" name="logo" class="w-full text-sm">
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-1">Doctor Signature</label>
+                    {% if clinic.doctor_signature %}
+                    <div class="mb-2">
+                        <img src="{{ clinic.doctor_signature.url }}" alt="Signature" class="h-12 border rounded">
+                    </div>
+                    {% endif %}
+                    <input type="file" name="doctor_signature" class="w-full text-sm">
+                </div>
+            </div>
+            <div class="mt-6">
+                <button type="submit" class="bg-blue-800 text-white px-6 py-2 rounded text-sm hover:bg-blue-700">Save Settings</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

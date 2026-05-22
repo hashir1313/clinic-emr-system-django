@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load core_extras %}
+{% block title %}{{ patient.full_name }} - Clinic EMR{% endblock %}
+{% block content %}
+<div class="flex justify-between items-start mb-6">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-800">{{ patient.full_name }}</h1>
+        <p class="text-gray-500 text-sm">{{ patient.patient_id }}</p>
+    </div>
+    <div class="flex gap-2">
+        <a href="{% url 'patient_update' patient.pk %}" class="bg-green-700 text-white px-4 py-2 rounded text-sm hover:bg-green-600">Edit</a>
+        <a href="{% url 'visit_create' patient.pk %}" class="bg-blue-800 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">+ New Visit</a>
+        <a href="{% url 'patient_delete' patient.pk %}" class="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700">Delete</a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <div class="bg-white p-4 rounded-lg shadow-sm border">
+        <h3 class="text-gray-500 text-xs uppercase tracking-wide mb-2">Demographics</h3>
+        <div class="space-y-1 text-sm">
+            <p><span class="text-gray-500">Age:</span> {{ patient.age }}</p>
+            <p><span class="text-gray-500">Gender:</span> {{ patient.get_gender_display }}</p>
+            <p><span class="text-gray-500">Blood Group:</span> {{ patient.blood_group|default:"-" }}</p>
+        </div>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow-sm border">
+        <h3 class="text-gray-500 text-xs uppercase tracking-wide mb-2">Contact</h3>
+        <div class="space-y-1 text-sm">
+            <p><span class="text-gray-500">Phone:</span> {{ patient.phone|default:"-" }}</p>
+            <p><span class="text-gray-500">Address:</span> {{ patient.address|default:"-" }}</p>
+        </div>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow-sm border">
+        <h3 class="text-gray-500 text-xs uppercase tracking-wide mb-2">Medical</h3>
+        <div class="space-y-1 text-sm">
+            <p><span class="text-gray-500">Allergies:</span> {{ patient.allergies|default:"None" }}</p>
+            <p><span class="text-gray-500">Registered:</span> {{ patient.created_at|date:"Y-m-d" }}</p>
+        </div>
+    </div>
+</div>
+
+{% if patient.medical_history %}
+<div class="bg-white p-4 rounded-lg shadow-sm border mb-6">
+    <h3 class="text-gray-500 text-xs uppercase tracking-wide mb-2">Medical History</h3>
+    <p class="text-sm text-gray-700">{{ patient.medical_history|linebreaks }}</p>
+</div>
+{% endif %}
+
+<div class="bg-white rounded-lg shadow-sm border">
+    <div class="px-6 py-4 border-b">
+        <h3 class="font-semibold text-gray-700">Visit History</h3>
+    </div>
+    <div class="p-6">
+        {% if visits %}
+        <div class="space-y-4">
+            {% for visit in visits %}
+            <div class="border rounded p-4 hover:bg-gray-50">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm text-gray-500">Visit #{{ visit.id }} - {{ visit.visit_date|date:"Y-m-d H:i" }}</p>
+                        {% if visit.symptoms %}<p class="text-sm mt-1"><span class="font-medium">Symptoms:</span> {{ visit.symptoms|truncatewords:20 }}</p>{% endif %}
+                        {% if visit.diagnosis %}<p class="text-sm"><span class="font-medium">Diagnosis:</span> {{ visit.diagnosis|truncatewords:20 }}</p>{% endif %}
+                        {% if visit.follow_up_date %}<p class="text-sm text-orange-600">Follow-up: {{ visit.follow_up_date }}</p>{% endif %}
+                    </div>
+                    <div class="flex gap-2">
+                        <a href="{% url 'visit_detail' visit.pk %}" class="text-blue-600 text-sm hover:underline">View</a>
+                        <a href="{% url 'prescription_drawing' visit.pk %}" class="text-purple-600 text-sm hover:underline">Prescription</a>
+                        <a href="{% url 'visit_print' visit.pk %}" class="text-green-600 text-sm hover:underline">Print</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-500 text-center py-4">No visits recorded. <a href="{% url 'visit_create' patient.pk %}" class="text-blue-600">Create one</a>.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

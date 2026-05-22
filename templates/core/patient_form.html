@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} - Clinic EMR{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">{{ title }}</h1>
+    <div class="bg-white rounded-lg shadow-sm border p-6">
+        <form method="post">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="md:col-span-2">
+                    <label class="block text-gray-700 text-sm font-medium mb-1">Full Name *</label>
+                    {{ form.full_name }}
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-1">Age *</label>
+                    {{ form.age }}
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-1">Gender *</label>
+                    {{ form.gender }}
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-1">Phone</label>
+                    {{ form.phone }}
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-1">Blood Group</label>
+                    {{ form.blood_group }}
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-gray-700 text-sm font-medium mb-1">Address</label>
+                    {{ form.address }}
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-gray-700 text-sm font-medium mb-1">Allergies</label>
+                    {{ form.allergies }}
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-gray-700 text-sm font-medium mb-1">Medical History</label>
+                    {{ form.medical_history }}
+                </div>
+            </div>
+            <div class="mt-6 flex gap-3">
+                <button type="submit" class="bg-blue-800 text-white px-6 py-2 rounded text-sm hover:bg-blue-700">Save</button>
+                <a href="{% url 'patient_list' %}" class="bg-gray-200 text-gray-700 px-6 py-2 rounded text-sm hover:bg-gray-300">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Prescription - Visit #{{ visit.id }}{% endblock %}
+{% block extra_head %}
+<style>
+    #prescription-canvas {
+        border: 2px solid #ccc;
+        border-radius: 4px;
+        cursor: crosshair;
+        touch-action: none;
+        background: white;
+        width: 100%;
+    }
+    .toolbar-btn {
+        @apply px-3 py-1.5 rounded text-sm font-medium transition-colors;
+    }
+    .toolbar-btn.active {
+        @apply bg-blue-800 text-white;
+    }
+    .toolbar-btn:not(.active) {
+        @apply bg-gray-200 text-gray-700 hover:bg-gray-300;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <div class="flex justify-between items-center mb-4">
+        <div>
+            <h1 class="text-xl font-bold text-gray-800">Prescription Drawing</h1>
+            <p class="text-sm text-gray-500">Visit #{{ visit.id }} - {{ visit.patient.full_name }}</p>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'visit_detail' visit.pk %}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-300">Back to Visit</a>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border p-4 mb-4">
+        <div class="flex flex-wrap gap-2 items-center">
+            <button onclick="setPen()" id="tool-pen" class="toolbar-btn active">Pen</button>
+            <button onclick="setEraser()" id="tool-eraser" class="toolbar-btn">Eraser</button>
+            <div class="w-px h-6 bg-gray-300 mx-1"></div>
+            <label class="text-sm text-gray-600">Size:</label>
+            <input type="range" id="brush-size" min="1" max="20" value="3" class="w-20" onchange="changeBrushSize(this.value)">
+            <span id="size-label" class="text-sm text-gray-500">3</span>
+            <div class="w-px h-6 bg-gray-300 mx-1"></div>
+            <label class="text-sm text-gray-600">Color:</label>
+            <input type="color" id="brush-color" value="#000000" class="w-8 h-8 p-0 border rounded cursor-pointer">
+            <div class="w-px h-6 bg-gray-300 mx-1"></div>
+            <button onclick="undo()" class="toolbar-btn">Undo</button>
+            <button onclick="redo()" class="toolbar-btn">Redo</button>
+            <button onclick="clearCanvas()" class="toolbar-btn bg-red-100 text-red-700 hover:bg-red-200">Clear</button>
+            <div class="w-px h-6 bg-gray-300 mx-1"></div>
+            <button onclick="saveDrawing()" id="btn-save" class="bg-green-700 text-white px-4 py-1.5 rounded text-sm hover:bg-green-600">Save</button>
+            <span id="save-status" class="text-sm text-gray-500 ml-2"></span>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border p-2">
+        <canvas id="prescription-canvas" width="900" height="600"></canvas>
+    </div>
+
+    {% if prescription and prescription.image %}
+    <div class="mt-4 bg-white rounded-lg shadow-sm border p-4">
+        <h3 class="text-sm font-medium text-gray-700 mb-2">Previously Saved Prescription</h3>
+        <img src="{{ prescription.image.url }}" alt="Previous prescription" class="max-h-40 border rounded">
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const canvasEl = document.getElementById('prescription-canvas');
+    const canvasContainer = canvasEl.parentElement;
+    
+    let canvasWidth = canvasContainer.clientWidth - 4;
+    let canvasHeight = Math.max(400, Math.floor(canvasWidth * 0.6));
+    
+    canvasEl.width = canvasWidth;
+    canvasEl.height = canvasHeight;
+    
+    const canvas = new fabric.Canvas('prescription-canvas', {
+        isDrawingMode: true,
+        width: canvasWidth,
+        height: canvasHeight,
+        backgroundColor: '#ffffff',
+        renderOnAddRemove: true,
+    });
+
+    let brush = canvas.freeDrawingBrush;
+    brush.width = 3;
+    brush.color = '#000000';
+
+    let undoStack = [];
+    let redoStack = [];
+    let isSaving = false;
+
+    function saveState() {
+        if (isSaving) return;
+        const json = JSON.stringify(canvas.toJSON(['id']));
+        undoStack.push(json);
+        if (undoStack.length > 50) undoStack.shift();
+        redoStack = [];
+    }
+
+    canvas.on('path:created', function() {
+        saveState();
+    });
+
+    canvas.on('object:modified', function() {
+        saveState();
+    });
+
+    function setPen() {
+        canvas.isDrawingMode = true;
+        brush = canvas.freeDrawingBrush;
+        brush.width = parseInt(document.getElementById('brush-size').value);
+        brush.color = document.getElementById('brush-color').value;
+        document.getElementById('tool-pen').classList.add('active');
+        document.getElementById('tool-eraser').classList.remove('active');
+        canvas.selection = false;
+    }
+
+    function setEraser() {
+        canvas.isDrawingMode = false;
+        canvas.selection = true;
+        document.getElementById('tool-eraser').classList.add('active');
+        document.getElementById('tool-pen').classList.remove('active');
+    }
+
+    function changeBrushSize(size) {
+        document.getElementById('size-label').textContent = size;
+        if (canvas.isDrawingMode) {
+            canvas.freeDrawingBrush.width = parseInt(size);
+        }
+    }
+
+    document.getElementById('brush-color').addEventListener('change', function(e) {
+        if (canvas.isDrawingMode) {
+            canvas.freeDrawingBrush.color = e.target.value;
+        }
+    });
+
+    canvas.on('mouse:down', function(e) {
+        if (!canvas.isDrawingMode && e.target) {
+            const activeObj = canvas.getActiveObject();
+            if (activeObj) {
+                canvas.remove(activeObj);
+                saveState();
+            }
+        }
+    });
+
+    function undo() {
+        if (undoStack.length > 1) {
+            const current = undoStack.pop();
+            redoStack.push(current);
+            const prev = undoStack[undoStack.length - 1];
+            isSaving = true;
+            canvas.loadFromJSON(JSON.parse(prev), function() {
+                canvas.renderAll();
+                isSaving = false;
+            });
+        }
+    }
+
+    function redo() {
+        if (redoStack.length > 0) {
+            const next = redoStack.pop();
+            undoStack.push(next);
+            isSaving = true;
+            canvas.loadFromJSON(JSON.parse(next), function() {
+                canvas.renderAll();
+                isSaving = false;
+            });
+        }
+    }
+
+    function clearCanvas() {
+        if (confirm('Clear the entire canvas?')) {
+            canvas.clear();
+            canvas.backgroundColor = '#ffffff';
+            saveState();
+        }
+    }
+
+    async function saveDrawing() {
+        const btn = document.getElementById('btn-save');
+        const status = document.getElementById('save-status');
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+        status.textContent = '';
+
+        const canvasImage = canvas.toDataURL('image/png');
+        const canvasJSON = JSON.stringify(canvas.toJSON(['id']));
+
+        try {
+            const response = await fetch('{% url "prescription_save" visit.pk %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify({
+                    canvas_image: canvasImage,
+                    canvas_json: canvasJSON,
+                }),
+            });
+
+            const data = await response.json();
+            if (data.status === 'ok') {
+                status.textContent = '✓ Saved';
+                status.className = 'text-sm text-green-600 ml-2';
+            } else {
+                status.textContent = '✗ Error: ' + data.message;
+                status.className = 'text-sm text-red-600 ml-2';
+            }
+        } catch (e) {
+            status.textContent = '✗ Save failed';
+            status.className = 'text-sm text-red-600 ml-2';
+        }
+
+        btn.disabled = false;
+        btn.textContent = 'Save';
+    }
+
+    async function loadDrawing() {
+        const status = document.getElementById('save-status');
+        try {
+            const response = await fetch('{% url "prescription_load" visit.pk %}');
+            const data = await response.json();
+
+            if (data.status === 'ok' && data.canvas_json) {
+                isSaving = true;
+                canvas.loadFromJSON(data.canvas_json, function() {
+                    canvas.renderAll();
+                    isSaving = false;
+                    saveState();
+                });
+                status.textContent = '✓ Prescription restored';
+                status.className = 'text-sm text-blue-600 ml-2';
+            } else {
+                status.textContent = 'No previous prescription found';
+                status.className = 'text-sm text-gray-500 ml-2';
+            }
+        } catch (e) {
+            console.log('No previous prescription to load');
+        }
+    }
+
+    canvas.on('object:added', function() {
+        canvas.requestRenderAll();
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+            e.preventDefault();
+            if (e.shiftKey) { redo(); } else { undo(); }
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            saveDrawing();
+        }
+    });
+
+    window.addEventListener('resize', function() {
+        const newWidth = canvasContainer.clientWidth - 4;
+        if (Math.abs(newWidth - canvasWidth) > 10) {
+            const json = canvas.toJSON(['id']);
+            canvasWidth = newWidth;
+            canvasHeight = Math.max(400, Math.floor(canvasWidth * 0.6));
+            canvas.setWidth(canvasWidth);
+            canvas.setHeight(canvasHeight);
+            canvas.calcOffset();
+            isSaving = true;
+            canvas.loadFromJSON(json, function() {
+                canvas.renderAll();
+                isSaving = false;
+            });
+        }
+    });
+
+    saveState();
+    loadDrawing();
+</script>
+{% endblock %}
