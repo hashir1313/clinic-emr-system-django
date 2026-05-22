@@ -34,7 +34,7 @@
                         <img src="{{ clinic.logo.url }}" alt="Logo" class="h-16 border rounded">
                     </div>
                     {% endif %}
-                    <input type="file" name="logo" class="w-full text-sm">
+                    <input type="file" name="logo" class="w-full text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                 </div>
                 <div>
                     <label class="block text-gray-700 text-sm font-medium mb-1">Doctor Signature</label>
@@ -43,11 +43,11 @@
                         <img src="{{ clinic.doctor_signature.url }}" alt="Signature" class="h-12 border rounded">
                     </div>
                     {% endif %}
-                    <input type="file" name="doctor_signature" class="w-full text-sm">
+                    <input type="file" name="doctor_signature" class="w-full text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                 </div>
             </div>
             <div class="mt-6">
-                <button type="submit" class="bg-blue-800 text-white px-6 py-2 rounded text-sm hover:bg-blue-700">Save Settings</button>
+                <button type="submit" class="bg-blue-800 text-white px-6 py-2 rounded text-sm transition hover:bg-blue-700 inline-flex items-center gap-1.5"><i data-lucide="save" class="w-4 h-4"></i> Save Settings</button>
             </div>
         </form>
     </div>

@@ -25,10 +25,11 @@
                 </div>
             </div>
             <div class="mt-6 flex gap-3">
-                <button type="submit" class="bg-blue-800 text-white px-6 py-2 rounded text-sm hover:bg-blue-700">
+                <button type="submit" class="bg-blue-800 text-white px-6 py-2 rounded text-sm transition hover:bg-blue-700 inline-flex items-center gap-1.5">
+                    <i data-lucide="save" class="w-4 h-4"></i>
                     {% if visit %}Save Changes{% else %}Save & Continue to Prescription{% endif %}
                 </button>
-                <a href="{% if patient %}{% url 'patient_detail' patient.pk %}{% else %}{% url 'dashboard' %}{% endif %}" class="bg-gray-200 text-gray-700 px-6 py-2 rounded text-sm hover:bg-gray-300">Cancel</a>
+                <a href="{% if patient %}{% url 'patient_detail' patient.pk %}{% else %}{% url 'dashboard' %}{% endif %}" class="bg-gray-200 text-gray-700 px-6 py-2 rounded text-sm transition hover:bg-gray-300 inline-flex items-center gap-1.5"><i data-lucide="x" class="w-4 h-4"></i> Cancel</a>
             </div>
         </form>
     </div>

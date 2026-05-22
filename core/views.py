@@ -1,7 +1,6 @@
 import json
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.conf import settings
@@ -14,26 +13,6 @@ from django.db.models.functions import TruncMonth
 from decimal import Decimal
 from utils.helpers import save_prescription_files, delete_prescription_files
 from utils.printing import render_print_html
-
-
-def setup(request):
-    if User.objects.filter(is_superuser=True).exists():
-        return redirect('login')
-    if request.method == 'POST':
-        username = request.POST.get('username', '').strip()
-        password = request.POST.get('password', '')
-        confirm = request.POST.get('confirm', '')
-        if not username or not password:
-            messages.error(request, 'All fields are required.')
-        elif password != confirm:
-            messages.error(request, 'Passwords do not match.')
-        elif len(password) < 6:
-            messages.error(request, 'Password must be at least 6 characters.')
-        else:
-            User.objects.create_superuser(username=username, password=password)
-            messages.success(request, 'Admin account created. Please log in.')
-            return redirect('login')
-    return render(request, 'core/setup.html')
 
 
 def login_redirect(request):
@@ -331,12 +310,14 @@ def invoice_list(request):
         invoices = invoices.filter(payment_status=status_filter)
     total_earnings = invoices.aggregate(total=Sum('total_amount'))['total'] or Decimal('0.00')
     total_paid = invoices.aggregate(total=Sum('paid_amount'))['total'] or Decimal('0.00')
+    total_pending = total_earnings - total_paid
     context = {
         'invoices': invoices,
         'query': query,
         'status_filter': status_filter,
         'total_earnings': total_earnings,
         'total_paid': total_paid,
+        'total_pending': total_pending,
         'section': 'billing',
     }
     return render(request, 'core/invoice_list.html', context)

@@ -7,27 +7,27 @@
         <h1 class="text-2xl font-bold text-gray-800">Visit #{{ visit.id }}</h1>
         <p class="text-gray-500 text-sm">{{ visit.visit_date|date:"Y-m-d H:i" }}</p>
     </div>
-    <div class="flex gap-2">
-        <a href="{% url 'visit_update' visit.pk %}" class="bg-green-700 text-white px-4 py-2 rounded text-sm hover:bg-green-600">Edit</a>
-        <a href="{% url 'prescription_drawing' visit.pk %}" class="bg-purple-700 text-white px-4 py-2 rounded text-sm hover:bg-purple-600">Prescription</a>
-        <a href="{% url 'visit_print' visit.pk %}" class="bg-blue-800 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">Print</a>
-        <a href="{% url 'visit_delete' visit.pk %}" class="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700">Delete</a>
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'visit_update' visit.pk %}" class="bg-green-700 text-white px-4 py-2 rounded text-sm transition hover:bg-green-600 inline-flex items-center gap-1.5"><i data-lucide="pencil" class="w-4 h-4"></i> Edit</a>
+        <a href="{% url 'prescription_drawing' visit.pk %}" class="bg-purple-700 text-white px-4 py-2 rounded text-sm transition hover:bg-purple-600 inline-flex items-center gap-1.5"><i data-lucide="file-pen" class="w-4 h-4"></i> Prescription</a>
+        <a href="{% url 'visit_print' visit.pk %}" class="bg-blue-800 text-white px-4 py-2 rounded text-sm transition hover:bg-blue-700 inline-flex items-center gap-1.5"><i data-lucide="printer" class="w-4 h-4"></i> Print</a>
+        <a href="{% url 'visit_delete' visit.pk %}" class="bg-red-600 text-white px-4 py-2 rounded text-sm transition hover:bg-red-700 inline-flex items-center gap-1.5"><i data-lucide="trash-2" class="w-4 h-4"></i> Delete</a>
     </div>
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-    <div class="bg-white p-4 rounded-lg shadow-sm border">
+    <div class="bg-white p-4 rounded-lg shadow-sm border transition hover:shadow-md">
         <h3 class="text-gray-500 text-xs uppercase tracking-wide mb-2">Patient</h3>
         <p class="font-medium"><a href="{% url 'patient_detail' visit.patient.pk %}" class="text-blue-600 hover:underline">{{ visit.patient.full_name }}</a></p>
         <p class="text-sm text-gray-500">{{ visit.patient.patient_id }} | {{ visit.patient.age }} yrs | {{ visit.patient.get_gender_display }}</p>
     </div>
-    <div class="bg-white p-4 rounded-lg shadow-sm border">
+    <div class="bg-white p-4 rounded-lg shadow-sm border transition hover:shadow-md">
         <h3 class="text-gray-500 text-xs uppercase tracking-wide mb-2">Follow-up</h3>
         <p class="font-medium">{{ visit.follow_up_date|default:"Not scheduled" }}</p>
     </div>
 </div>
 
-<div class="bg-white rounded-lg shadow-sm border mb-6">
+<div class="bg-white rounded-lg shadow-sm border transition hover:shadow-md mb-6">
     <div class="p-6 space-y-4">
         {% if visit.symptoms %}
         <div>
@@ -51,13 +51,13 @@
 </div>
 
 {% if prescription and prescription.image %}
-<div class="bg-white rounded-lg shadow-sm border">
+<div class="bg-white rounded-lg shadow-sm border transition hover:shadow-md">
     <div class="px-6 py-4 border-b">
         <h3 class="font-semibold text-gray-700">Prescription</h3>
     </div>
     <div class="p-6">
         <img src="{{ prescription.image.url }}" alt="Prescription" class="max-w-full border rounded" style="max-height: 500px;">
-        <a href="{% url 'prescription_drawing' visit.pk %}" class="inline-block mt-3 bg-purple-700 text-white px-4 py-2 rounded text-sm hover:bg-purple-600">Edit Prescription</a>
+        <a href="{% url 'prescription_drawing' visit.pk %}" class="inline-flex items-center gap-1.5 mt-3 bg-purple-700 text-white px-4 py-2 rounded text-sm transition hover:bg-purple-600"><i data-lucide="file-pen" class="w-4 h-4"></i> Edit Prescription</a>
     </div>
 </div>
 {% endif %}

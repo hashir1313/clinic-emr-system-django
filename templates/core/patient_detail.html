@@ -7,16 +7,16 @@
         <h1 class="text-2xl font-bold text-gray-800">{{ patient.full_name }}</h1>
         <p class="text-gray-500 text-sm">{{ patient.patient_id }}</p>
     </div>
-    <div class="flex gap-2">
-        <a href="{% url 'patient_update' patient.pk %}" class="bg-green-700 text-white px-4 py-2 rounded text-sm hover:bg-green-600">Edit</a>
-        <a href="{% url 'visit_create' patient.pk %}" class="bg-blue-800 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">+ New Visit</a>
-        <a href="{% url 'invoice_create_for_patient' patient.pk %}" class="bg-indigo-700 text-white px-4 py-2 rounded text-sm hover:bg-indigo-600">+ Invoice</a>
-        <a href="{% url 'patient_delete' patient.pk %}" class="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700">Delete</a>
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'patient_update' patient.pk %}" class="bg-green-700 text-white px-4 py-2 rounded text-sm transition hover:bg-green-600 inline-flex items-center gap-1.5"><i data-lucide="pencil" class="w-4 h-4"></i> Edit</a>
+        <a href="{% url 'visit_create' patient.pk %}" class="bg-blue-800 text-white px-4 py-2 rounded text-sm transition hover:bg-blue-700 inline-flex items-center gap-1.5"><i data-lucide="plus" class="w-4 h-4"></i> New Visit</a>
+        <a href="{% url 'invoice_create_for_patient' patient.pk %}" class="bg-indigo-700 text-white px-4 py-2 rounded text-sm transition hover:bg-indigo-600 inline-flex items-center gap-1.5"><i data-lucide="receipt" class="w-4 h-4"></i> Invoice</a>
+        <a href="{% url 'patient_delete' patient.pk %}" class="bg-red-600 text-white px-4 py-2 rounded text-sm transition hover:bg-red-700 inline-flex items-center gap-1.5"><i data-lucide="trash-2" class="w-4 h-4"></i> Delete</a>
     </div>
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-    <div class="bg-white p-4 rounded-lg shadow-sm border">
+    <div class="bg-white p-4 rounded-lg shadow-sm border transition hover:shadow-md">
         <h3 class="text-gray-500 text-xs uppercase tracking-wide mb-2">Demographics</h3>
         <div class="space-y-1 text-sm">
             <p><span class="text-gray-500">Age:</span> {{ patient.age }}</p>
@@ -24,21 +24,21 @@
             <p><span class="text-gray-500">Blood Group:</span> {{ patient.blood_group|default:"-" }}</p>
         </div>
     </div>
-    <div class="bg-white p-4 rounded-lg shadow-sm border">
+    <div class="bg-white p-4 rounded-lg shadow-sm border transition hover:shadow-md">
         <h3 class="text-gray-500 text-xs uppercase tracking-wide mb-2">Contact</h3>
         <div class="space-y-1 text-sm">
             <p><span class="text-gray-500">Phone:</span> {{ patient.phone|default:"-" }}</p>
             <p><span class="text-gray-500">Address:</span> {{ patient.address|default:"-" }}</p>
         </div>
     </div>
-    <div class="bg-white p-4 rounded-lg shadow-sm border">
+    <div class="bg-white p-4 rounded-lg shadow-sm border transition hover:shadow-md">
         <h3 class="text-gray-500 text-xs uppercase tracking-wide mb-2">Medical</h3>
         <div class="space-y-1 text-sm">
             <p><span class="text-gray-500">Allergies:</span> {{ patient.allergies|default:"None" }}</p>
             <p><span class="text-gray-500">Registered:</span> {{ patient.created_at|date:"Y-m-d" }}</p>
         </div>
     </div>
-    <div class="bg-white p-4 rounded-lg shadow-sm border">
+    <div class="bg-white p-4 rounded-lg shadow-sm border transition hover:shadow-md">
         <h3 class="text-gray-500 text-xs uppercase tracking-wide mb-2">Billing Summary</h3>
         <div class="space-y-1 text-sm">
             <p><span class="text-gray-500">Total Billed:</span> <span class="font-medium">${{ total_billed|floatformat:2 }}</span></p>
@@ -49,14 +49,14 @@
 </div>
 
 {% if patient.medical_history %}
-<div class="bg-white p-4 rounded-lg shadow-sm border mb-6">
+<div class="bg-white p-4 rounded-lg shadow-sm border transition hover:shadow-md mb-6">
     <h3 class="text-gray-500 text-xs uppercase tracking-wide mb-2">Medical History</h3>
     <p class="text-sm text-gray-700">{{ patient.medical_history|linebreaks }}</p>
 </div>
 {% endif %}
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-    <div class="bg-white rounded-lg shadow-sm border">
+    <div class="bg-white rounded-lg shadow-sm border transition hover:shadow-md">
         <div class="px-6 py-4 border-b">
             <h3 class="font-semibold text-gray-700">Visit History</h3>
         </div>
@@ -71,26 +71,26 @@
                             {% if visit.symptoms %}<p class="text-sm mt-1"><span class="font-medium">Symptoms:</span> {{ visit.symptoms|truncatewords:15 }}</p>{% endif %}
                             {% if visit.diagnosis %}<p class="text-sm"><span class="font-medium">Diagnosis:</span> {{ visit.diagnosis|truncatewords:15 }}</p>{% endif %}
                         </div>
-                        <div class="flex gap-2 text-xs">
-                            <a href="{% url 'visit_detail' visit.pk %}" class="text-blue-600 hover:underline">View</a>
-                            <a href="{% url 'prescription_drawing' visit.pk %}" class="text-purple-600 hover:underline">Rx</a>
-                            <a href="{% url 'visit_print' visit.pk %}" class="text-green-600 hover:underline">Print</a>
-                            <a href="{% url 'invoice_create_for_visit' patient.pk visit.pk %}" class="text-indigo-600 hover:underline">Bill</a>
+                        <div class="flex gap-3 text-xs">
+                            <a href="{% url 'visit_detail' visit.pk %}" class="text-blue-600 hover:underline inline-flex items-center gap-1"><i data-lucide="eye" class="w-3 h-3"></i> View</a>
+                            <a href="{% url 'prescription_drawing' visit.pk %}" class="text-purple-600 hover:underline inline-flex items-center gap-1"><i data-lucide="file-pen" class="w-3 h-3"></i> Rx</a>
+                            <a href="{% url 'visit_print' visit.pk %}" class="text-green-600 hover:underline inline-flex items-center gap-1"><i data-lucide="printer" class="w-3 h-3"></i> Print</a>
+                            <a href="{% url 'invoice_create_for_visit' patient.pk visit.pk %}" class="text-indigo-600 hover:underline inline-flex items-center gap-1"><i data-lucide="receipt" class="w-3 h-3"></i> Bill</a>
                         </div>
                     </div>
                 </div>
                 {% endfor %}
             </div>
             {% else %}
-            <p class="text-gray-500 text-center py-4 text-sm">No visits recorded. <a href="{% url 'visit_create' patient.pk %}" class="text-blue-600">Create one</a>.</p>
+            <p class="text-gray-500 text-center py-4 text-sm">No visits recorded. <a href="{% url 'visit_create' patient.pk %}" class="text-blue-600 inline-flex items-center gap-1"><i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Create one</a>.</p>
             {% endif %}
         </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow-sm border">
+    <div class="bg-white rounded-lg shadow-sm border transition hover:shadow-md">
         <div class="px-6 py-4 border-b flex justify-between items-center">
             <h3 class="font-semibold text-gray-700">Invoice History</h3>
-            <a href="{% url 'invoice_create_for_patient' patient.pk %}" class="text-indigo-600 text-sm">+ New Invoice</a>
+            <a href="{% url 'invoice_create_for_patient' patient.pk %}" class="text-indigo-600 text-sm inline-flex items-center gap-1"><i data-lucide="plus" class="w-3.5 h-3.5"></i> New Invoice</a>
         </div>
         <div class="p-4">
             {% if invoices %}
@@ -104,21 +104,22 @@
                         </div>
                         <div class="text-right">
                             <p class="text-sm font-medium">${{ inv.total_amount|floatformat:2 }}</p>
-                            <span class="text-xs px-2 py-0.5 rounded {% if inv.payment_status == 'paid' %}bg-green-100 text-green-800{% elif inv.payment_status == 'partial' %}bg-yellow-100 text-yellow-800{% else %}bg-red-100 text-red-800{% endif %}">
+                            <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded {% if inv.payment_status == 'paid' %}bg-green-100 text-green-800{% elif inv.payment_status == 'partial' %}bg-yellow-100 text-yellow-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                {% if inv.payment_status == 'paid' %}<i data-lucide="check-circle" class="w-3 h-3"></i>{% elif inv.payment_status == 'partial' %}<i data-lucide="clock" class="w-3 h-3"></i>{% else %}<i data-lucide="x-circle" class="w-3 h-3"></i>{% endif %}
                                 {{ inv.get_payment_status_display }}
                             </span>
                         </div>
                     </div>
-                    <div class="mt-2 flex gap-2 text-xs">
-                        <a href="{% url 'invoice_detail' inv.pk %}" class="text-blue-600 hover:underline">View</a>
-                        <a href="{% url 'invoice_update' inv.pk %}" class="text-green-600 hover:underline">Edit</a>
-                        <a href="{% url 'invoice_print' inv.pk %}" class="text-indigo-600 hover:underline">Print</a>
+                    <div class="mt-2 flex gap-3 text-xs">
+                        <a href="{% url 'invoice_detail' inv.pk %}" class="text-blue-600 hover:underline inline-flex items-center gap-1"><i data-lucide="eye" class="w-3 h-3"></i> View</a>
+                        <a href="{% url 'invoice_update' inv.pk %}" class="text-green-600 hover:underline inline-flex items-center gap-1"><i data-lucide="pencil" class="w-3 h-3"></i> Edit</a>
+                        <a href="{% url 'invoice_print' inv.pk %}" class="text-indigo-600 hover:underline inline-flex items-center gap-1"><i data-lucide="printer" class="w-3 h-3"></i> Print</a>
                     </div>
                 </div>
                 {% endfor %}
             </div>
             {% else %}
-            <p class="text-gray-500 text-center py-4 text-sm">No invoices. <a href="{% url 'invoice_create_for_patient' patient.pk %}" class="text-indigo-600">Create one</a>.</p>
+            <p class="text-gray-500 text-center py-4 text-sm">No invoices. <a href="{% url 'invoice_create_for_patient' patient.pk %}" class="text-indigo-600 inline-flex items-center gap-1"><i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Create one</a>.</p>
             {% endif %}
         </div>
     </div>

@@ -1,24 +1,31 @@
 {% extends "base.html" %}
 {% block title %}Login - Clinic EMR{% endblock %}
 {% block content %}
-<div class="min-h-screen flex items-center justify-center -mt-14">
+<div class="min-h-screen flex items-center justify-center">
     <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 class="text-2xl font-bold text-center text-blue-800 mb-6">Clinic EMR</h1>
-        <h2 class="text-lg text-center text-gray-600 mb-6">Login</h2>
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-blue-800">Clinic EMR</h1>
+            <p class="text-gray-500 mt-1">Sign in to your account</p>
+        </div>
         <form method="post">
             {% csrf_token %}
             <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-medium mb-2">Username</label>
-                {{ form.username }}
+                <label class="block text-gray-700 text-sm font-medium mb-1.5">Username</label>
+                <input type="text" name="username" placeholder="Username" autofocus required
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400">
             </div>
             <div class="mb-6">
-                <label class="block text-gray-700 text-sm font-medium mb-2">Password</label>
-                {{ form.password }}
+                <label class="block text-gray-700 text-sm font-medium mb-1.5">Password</label>
+                <input type="password" name="password" placeholder="Password" required
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400">
             </div>
             {% if form.errors %}
-            <div class="mb-4 text-red-600 text-sm">Invalid username or password.</div>
+            <div class="mb-4 flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-3 py-2">
+                <i data-lucide="circle-alert" class="w-4 h-4 shrink-0"></i>
+                <span>Invalid username or password.</span>
+            </div>
             {% endif %}
-            <button type="submit" class="w-full bg-blue-800 text-white py-2 rounded hover:bg-blue-700 font-medium">Sign In</button>
+            <button type="submit" class="w-full bg-blue-800 text-white py-2.5 rounded-lg hover:bg-blue-700 font-medium transition">Sign In</button>
         </form>
     </div>
 </div>
