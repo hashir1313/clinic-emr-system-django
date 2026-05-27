@@ -153,6 +153,7 @@ clinic-emr-system-django/
 ### Prerequisites
 - Python 3.10+
 - pip
+- git
 
 ### Windows
 ```batch
