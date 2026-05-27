@@ -1,111 +1,152 @@
 # Clinic EMR System
 
-A fully offline-capable clinic management system for single-doctor practices. Manage patient records, visits, handwritten digital prescriptions, billing, and printable documents — all without internet access.
+A fully offline-capable clinic management system for single-doctor practices. Manage patient records, visits, handwritten digital prescriptions, billing/invoicing, and printable documents — zero internet required.
 
 ## Features
 
 ### Patient Management
-- Create, edit, delete patients
-- Search by name, phone, or patient ID
-- Medical history, allergies, blood group tracking
+- Create, edit, delete patient records
+- Search by name, phone, or auto-generated patient ID
+- Store demographics, contact, blood group, allergies, medical history
 
 ### Visit Management
-- Create visits linked to patients
-- Record symptoms, diagnosis, notes, follow-up dates
-- Full visit history timeline per patient
+- Create visits linked to patients with auto-generated timestamps
+- Record symptoms, diagnosis, notes, and follow-up dates
+- Full chronological visit history per patient
 
 ### Digital Prescriptions
-- Handwritten prescription drawing with stylus/tablet support
-- Fabric.js-based canvas with pen/eraser, undo/redo, brush size/color
-- Pointer events for iPad, S-Pen, Surface devices
-- Save/load/restore previous prescriptions as editable JSON
-- Prescriptions stored as both images (PNG) and editable JSON files
+- **Handwritten prescription drawing** using Fabric.js canvas
+- Pen/eraser tools, brush size/color controls, undo/redo
+- Full **pointer events** support for stylus/tablet (iPad, S-Pen, Surface)
+- Save prescriptions as both **PNG images** and **editable JSON files**
+- Reload and edit previous prescriptions from any visit
+- Keyboard shortcuts: `Ctrl+Z` undo, `Ctrl+Shift+Z` redo, `Ctrl+S` save
 
 ### Billing & Invoices
-- Create invoices linked to patient visits
-- Add line items (consultation, procedures, medicines, lab, custom)
-- Auto-calculated subtotal, discount, tax, total, remaining balance
-- Payment status tracking (paid, unpaid, partially paid)
-- Search and filter invoices
-- Printable invoices
+- Create invoices linked to patients and optionally to specific visits
+- Add line items: consultation fees, procedures, medicines, lab charges, custom items
+- **Auto-calculated**: subtotal, discount, tax, grand total, paid amount, remaining balance
+- Payment status tracking: **Paid / Unpaid / Partially Paid**
+- Search and filter invoices by ID, patient name, date, or payment status
+- Financial summary on dashboard (total earnings, collected, pending)
 
 ### Printing
-- Professional A4 printable visit reports
-- Professional A4 printable invoices
-- Auto-triggers browser print dialog
-- Works fully offline
+- **Printable visit reports** — professional A4 layout with patient info, vitals, prescription image, doctor signature
+- **Printable invoices** — professional A4 layout with itemized table, totals, payment status
+- Auto-triggers browser print dialog on page load
+- All printing works fully offline
 
 ### Dashboard
-- Total patients, visits, earnings overview
-- Recent patients, visits, invoices
-- Quick actions for common tasks
+- Overview cards: total patients, visits, earnings, pending payments
+- Recent patients, visits, and invoices with quick-action links
+- Quick access to create patient, visit, or invoice
 
-### Offline-First
-- Zero internet dependency
-- All libraries served locally (no CDN)
-- SQLite database — single file, portable
-- Entire application runs from one folder
+### Fully Offline
+- **Zero CDN dependencies** — all libraries (HTMX, Fabric.js, Alpine.js, Tailwind, Lucide) served locally from `static/vendor/`
+- **SQLite database** — single file, fully portable, no server setup
+- Entire application runs from one folder, nothing leaves your machine
 
 ## Tech Stack
 
 | Component | Technology |
-|-----------|------------|
-| Backend | Django 6.0 |
-| Database | SQLite |
-| Frontend | Django Templates, Tailwind CSS, Vanilla JS |
-| Dynamic Interactions | HTMX |
-| Drawing | Fabric.js |
-| Printing | Browser native print (HTML/CSS) |
-| Icons/UI | Tailwind CSS |
+|-----------|-----------|
+| Backend | **Django 6.0** |
+| Database | **SQLite** (zero-config, single file) |
+| Frontend | Django Templates, **Tailwind CSS**, Vanilla JavaScript |
+| Dynamic UI | **HTMX** (AJAX partial page updates) |
+| Drawing | **Fabric.js** 5.x (prescription canvas) |
+| Icons | **Lucide** |
+| PDF | WeasyPrint (optional, gracefully degrades) |
+| Styling | Tailwind CSS (utility-first, minimal custom CSS) |
 
 ## Project Structure
 
 ```
 clinic-emr-system-django/
-├── clinic_emr/              # Django project config
+├── clinic_emr/                  # Django project configuration
 │   ├── settings.py
-│   ├── urls.py
-│   └── wsgi.py
-├── core/                    # Main application
-│   ├── models.py            # Patient, Visit, Prescription, Invoice, etc.
-│   ├── views.py             # All views
-│   ├── forms.py             # All forms
-│   ├── urls.py              # URL routing
-│   └── admin.py             # Admin interface
+│   ├── urls.py                  # Root URL config (includes core + admin)
+│   ├── wsgi.py
+│   └── asgi.py
+│
+├── core/                        # Main application
+│   ├── models.py                # 6 models (see below)
+│   ├── views.py                 # 27 views
+│   ├── forms.py                 # 6 forms
+│   ├── urls.py                  # 30+ URL routes
+│   ├── admin.py                 # Admin config for all models
+│   ├── templatetags/
+│   │   └── core_extras.py       # Custom template filters
+│   └── migrations/              # 3 migration files
+│
 ├── templates/
-│   ├── base.html            # Base layout
-│   └── core/                # All page templates
+│   ├── base.html                # Main layout (nav, messages, scripts)
+│   └── core/                    # 18 page templates
+│       ├── login.html
 │       ├── dashboard.html
 │       ├── patient_list.html
-│       ├── patient_detail.html
+│       ├── _patient_table.html  # HTMX partial
+│       ├── patient_form.html
+│       ├── patient_detail.html  # Profile + visit/invoice history
+│       ├── patient_confirm_delete.html
 │       ├── visit_form.html
-│       ├── prescription_drawing.html
+│       ├── visit_detail.html
+│       ├── visit_confirm_delete.html
+│       ├── prescription_drawing.html  # Fabric.js canvas
+│       ├── print_visit.html           # Printable A4 report
 │       ├── invoice_list.html
 │       ├── invoice_form.html
-│       ├── print_visit.html
-│       ├── print_invoice.html
-│       └── ...
+│       ├── invoice_detail.html
+│       ├── invoice_confirm_delete.html
+│       ├── print_invoice.html         # Printable A4 invoice
+│       └── clinic_settings.html
+│
 ├── static/
 │   ├── css/style.css
 │   ├── js/main.js
-│   └── vendor/              # Local copies of all JS/CSS libs
+│   └── vendor/                   # All libraries (local, no CDN)
 │       ├── htmx/
-│       ├── fabric/
-│       ├── alpine/
-│       └── tailwind/
+│       │   ├── htmx.min.js
+│       │   └── json-enc.js
+│       ├── fabric/fabric.min.js
+│       ├── alpine/alpine.min.js
+│       ├── tailwind/tailwind.min.css
+│       └── lucide/
+│           ├── lucide.min.js
+│           └── lucide.js
+│
 ├── utils/
-│   ├── helpers.py           # Prescription file management
-│   └── printing.py          # Print HTML rendering
+│   ├── helpers.py                # Prescription file save/delete
+│   └── printing.py               # Print HTML/PDF rendering
+│
 ├── media/
 │   ├── prescriptions/
-│   │   ├── images/          # Prescription PNG files
-│   │   └── json/            # Prescription JSON files
+│   │   ├── images/               # Prescription PNG files
+│   │   └── json/                 # Prescription JSON files
 │   └── patient_documents/
+│
+├── Setup/
+│   ├── setup.bat                 # Windows one-click setup
+│   └── setup.sh                  # Linux/Mac one-click setup
+│
+├── start-win.bat                 # Windows start script
+├── start-linux.sh                # Linux/Mac start script
 ├── manage.py
 ├── requirements.txt
 ├── .gitignore
-└── Procfile
+└── README.md
 ```
+
+## Database Models
+
+| Model | Key Fields | Purpose |
+|-------|-----------|---------|
+| **ClinicInfo** | name, address, phone, email, doctor_name, logo, signature | Singleton clinic settings |
+| **Patient** | patient_id (auto: P0001), full_name, age, gender, phone, blood_group, allergies, medical_history | Patient records |
+| **Visit** | patient (FK), visit_date, symptoms, diagnosis, notes, follow_up_date | Patient visits |
+| **Prescription** | visit (OneToOne), image (PNG), canvas_json, json_file (JSON) | Digital prescriptions |
+| **Invoice** | invoice_id (auto: INV-0001), patient, visit, subtotal, discount, tax, total, paid, remaining, payment_status | Billing |
+| **InvoiceItem** | invoice (FK), item_type, item_name, quantity, unit_price, total_price (auto-calc) | Line items |
 
 ## Quick Start
 
@@ -113,78 +154,163 @@ clinic-emr-system-django/
 - Python 3.10+
 - pip
 
-### Setup
-
-```bash
-# Clone the repository
+### Windows
+```batch
 git clone <repo-url>
 cd clinic-emr-system-django
-
-# Create virtual environment
 python -m venv venv
-
-# Activate it
-# Windows:
 venv\Scripts\activate
-# Linux/Mac:
-source venv/bin/activate
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Run migrations
 python manage.py migrate
-
-# Create admin account
 python manage.py createsuperuser
-
-# Start server
 python manage.py runserver
 ```
 
-### First Login
-1. Navigate to `http://localhost:8000/`
-2. Log in with the admin credentials you created
-3. Go to `/settings/` to configure clinic information
-4. Start by adding a patient, then create a visit and prescription
+Or simply run `Setup/setup.bat` which does all of the above automatically.
 
-## Usage
+### Linux / Mac
+```bash
+git clone <repo-url>
+cd clinic-emr-system-django
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+Or simply run `bash Setup/setup.sh` which does all of the above automatically.
+
+### First Use
+1. Open `http://localhost:8000/` and log in with your admin credentials
+2. Go to **Settings** (`/settings/`) to configure your clinic name, address, doctor name, etc.
+3. Click **Patients** to add your first patient
+4. From the patient profile, create a **Visit** then write a **Prescription**
+5. From any visit, click **Print** to generate a printable visit report
+6. From any patient, click **+ Invoice** to create a bill with line items
+
+## Usage Guide
 
 ### Patients
-- **Add**: Click "+ Add Patient" on the Patients page
-- **Search**: Use the search bar — searches by name, phone, or patient ID
-- **View**: Click a patient name to see full profile, visit history, and invoices
+| Action | How |
+|--------|-----|
+| Add | Click "+ Add Patient" on Patients page |
+| Search | Type in the search bar — searches name, phone, ID in real-time (HTMX) |
+| View | Click patient name → profile with demographics, visit history, invoice history |
+| Edit | Click "Edit" on patient profile |
+| Delete | Click "Delete" on patient profile (confirmation required) |
 
 ### Visits
-- **Create**: From patient profile, click "+ New Visit"
-- **Record**: Enter symptoms, diagnosis, notes, and follow-up date
-- **Prescription**: After creating a visit, you're taken to the prescription drawing page
+| Action | How |
+|--------|-----|
+| Create | Click "+ New Visit" on patient profile → fill symptoms, diagnosis, notes → auto-redirects to prescription |
+| Edit | Click "Edit" on visit detail page |
+| View | Click "View" on any visit in patient history |
+| Print | Click "Print" → opens A4 printable report with auto-print dialog |
 
 ### Prescriptions
-- **Draw**: Use the canvas with pen/eraser tools
-- **Save**: Click "Save" to store the prescription as PNG + editable JSON
-- **Restore**: Open a previous visit's prescription to continue editing
-- **Shortcuts**: Ctrl+Z (undo), Ctrl+Shift+Z (redo), Ctrl+S (save)
+- Use the **Pen** tool to draw freehand on the canvas
+- Switch to **Eraser** to remove strokes (click on them)
+- Adjust **brush size** (slider) and **color** (color picker)
+- **Undo/Redo** or use `Ctrl+Z` / `Ctrl+Shift+Z`
+- Click **Save** to store as PNG + editable JSON
+- Reopening a previous prescription loads the saved JSON — continue editing
+- `Ctrl+S` shortcut to save
 
 ### Billing
-- **Create Invoice**: From patient profile click "+ Invoice" or from Billing page
-- **Add Items**: After creating an invoice, add line items (consultation, medicines, etc.)
-- **Auto-calculations**: Totals, discounts, tax, and remaining balance update automatically
-- **Print**: Click "Print" to generate a printable A4 invoice
+| Action | How |
+|--------|-----|
+| Create Invoice | Click "+ Invoice" on patient profile, or "+ New Invoice" on Billing page |
+| Add Items | After creating invoice, add line items (type, name, qty, price) |
+| Update Payment | Edit invoice → change paid amount → status updates automatically |
+| View | Click invoice ID to see full itemized breakdown |
+| Print | Click "Print" → opens A4 printable invoice with auto-print dialog |
+| Search | On Billing page, search by ID/name or filter by payment status |
 
-### Printing
-- **Visit Report**: Click "Print" on any visit
-- **Invoice**: Click "Print" on any invoice
-- Both auto-open your browser's print dialog
+### Auto-Calculations
+- **Item total** = quantity × unit price (auto-calculated on save)
+- **Subtotal** = sum of all item totals + consultation fee
+- **Grand total** = subtotal − discount + tax
+- **Remaining** = total − paid amount
+- **Payment status**: remaining ≤ 0 → "Paid", paid > 0 → "Partial", otherwise "Unpaid"
 
-### Fully Offline
-No internet is needed once the application is running. All frontend libraries are included in `/static/vendor/`. The SQLite database stores everything locally.
+## Setup Scripts
+
+The project includes convenience scripts for first-time setup:
+
+### `Setup/setup.bat` (Windows)
+```batch
+@echo off
+python -m venv venv
+call venv\Scripts\activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+### `Setup/setup.sh` (Linux/Mac)
+```bash
+#!/bin/bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+### `start-win.bat` (Windows — quick launch)
+```batch
+@echo off
+git pull
+call venv\Scripts\activate
+python manage.py runserver
+start http://localhost:8000
+```
+
+### `start-linux.sh` (Linux/Mac — quick launch)
+```bash
+#!/bin/bash
+git pull
+source venv/bin/activate
+python manage.py runserver
+xdg-open http://localhost:8000
+```
+
+## Deployment
+
+### Render.com
+1. Push code to GitHub
+2. Create new **Web Service** on Render
+3. Connect your repository
+4. **Build Command**: `pip install -r requirements.txt`
+5. **Start Command**: `python manage.py migrate --noinput && gunicorn clinic_emr.wsgi --bind 0.0.0.0:$PORT`
+
+## Offline-First Design
+
+This application is designed to run **completely without internet access**:
+
+- **All frontend libraries** are vendored locally in `static/vendor/` — no CDN calls
+- **SQLite database** stores everything in a single `db.sqlite3` file — no database server
+- **Local file storage** for prescription images and JSON files in `media/`
+- **Browser-native printing** — no cloud print services
+- **WeasyPrint** is optional; if the system GTK libraries aren't available, printing falls back to HTML + browser print
 
 ## Security
-- Authentication required for all pages
-- No public registration — admin account created manually
-- CSRF protection on all forms
-- Session-based authentication
 
-## License
-MIT
+- **Authentication required** for all pages (login redirect)
+- **No public registration** — admin account created via `createsuperuser` or `Setup/setup` scripts
+- **CSRF protection** on all forms
+- **Session-based authentication**
+- **Route protection** via `@login_required` decorator on all views
+
+## Future-Proof Architecture
+
+The codebase is structured for future expansion:
+
+- **Billing**: Ready for inventory integration, multi-doctor billing, GST/VAT, export features
+- **Prescriptions**: JSON storage enables cloud sync if ever needed
+- **Models**: Clean FK relationships allow extending with insurance, appointments, lab results
+- **Utils**: Service layer pattern separates business logic from views
