@@ -13,4 +13,4 @@ timeout /t 2 /nobreak >nul
 echo Opening http://localhost:8000/ in your browser...
 start http://localhost:8000/
 
-pause
+

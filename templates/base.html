@@ -13,40 +13,62 @@
     {% block extra_head %}{% endblock %}
 </head>
 <body class="bg-gray-50 min-h-screen">
-    {% if user.is_authenticated %}
-    <nav class="bg-blue-800 text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex justify-between items-center h-14">
-                <div class="flex items-center space-x-1">
-                    <a href="{% url 'dashboard' %}" class="font-bold text-lg mr-4">Clinic EMR</a>
-                    <a href="{% url 'dashboard' %}" class="{% if section == 'dashboard' %}bg-blue-700{% endif %} px-3 py-1.5 rounded text-sm hover:bg-blue-700 inline-flex items-center gap-1.5">
-                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
-                    </a>
-                    <a href="{% url 'patient_list' %}" class="{% if section == 'patients' %}bg-blue-700{% endif %} px-3 py-1.5 rounded text-sm hover:bg-blue-700 inline-flex items-center gap-1.5">
-                        <i data-lucide="users" class="w-4 h-4"></i> Patients
-                    </a>
-                    <a href="{% url 'invoice_list' %}" class="{% if section == 'billing' %}bg-blue-700{% endif %} px-3 py-1.5 rounded text-sm hover:bg-blue-700 inline-flex items-center gap-1.5">
-                        <i data-lucide="receipt" class="w-4 h-4"></i> Billing
-                    </a>
-                    <a href="{% url 'clinic_settings' %}" class="{% if section == 'settings' %}bg-blue-700{% endif %} px-3 py-1.5 rounded text-sm hover:bg-blue-700 inline-flex items-center gap-1.5">
-                        <i data-lucide="settings" class="w-4 h-4"></i> Settings
-                    </a>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-sm text-blue-200 inline-flex items-center gap-1.5">
-                        <i data-lucide="circle-user" class="w-4 h-4"></i> {{ user.username }}
-                    </span>
-                    <form method="post" action="{% url 'logout' %}" class="inline">
-                        {% csrf_token %}
-                        <button type="submit" class="text-sm bg-red-600 transition hover:bg-red-700 px-3 py-1.5 rounded inline-flex items-center gap-1.5">
-                            <i data-lucide="log-out" class="w-4 h-4"></i> Logout
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </nav>
-    {% endif %}
+     {% if user.is_authenticated %}
+     <nav class="bg-blue-800 text-white shadow-lg">
+         <div class="max-w-7xl mx-auto px-4" x-data="{ open: false }">
+             <div class="flex justify-between items-center h-14">
+                 <div class="flex items-center space-x-1">
+                     <a href="{% url 'dashboard' %}" class="font-bold text-lg mr-4">Clinic EMR</a>
+                 </div>
+                 <!-- Mobile menu button -->
+                 <button @click="open = !open" class="md:hidden p-2 rounded hover:bg-blue-700 focus:outline-none">
+                     <i data-lucide="menu" class="w-5 h-5"></i>
+                 </button>
+                 <!-- Desktop menu -->
+                 <div class="hidden md:flex items-center space-x-4">
+                     <a href="{% url 'dashboard' %}" class="{% if section == 'dashboard' %}bg-blue-700{% endif %} px-3 py-1.5 rounded text-sm hover:bg-blue-700 inline-flex items-center gap-1.5">
+                         <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
+                     </a>
+                     <a href="{% url 'patient_list' %}" class="{% if section == 'patients' %}bg-blue-700{% endif %} px-3 py-1.5 rounded text-sm hover:bg-blue-700 inline-flex items-center gap-1.5">
+                         <i data-lucide="users" class="w-4 h-4"></i> Patients
+                     </a>
+                     <a href="{% url 'invoice_list' %}" class="{% if section == 'billing' %}bg-blue-700{% endif %} px-3 py-1.5 rounded text-sm hover:bg-blue-700 inline-flex items-center gap-1.5">
+                         <i data-lucide="receipt" class="w-4 h-4"></i> Billing
+                     </a>
+                     <a href="{% url 'clinic_settings' %}" class="{% if section == 'settings' %}bg-blue-700{% endif %} px-3 py-1.5 rounded text-sm hover:bg-blue-700 inline-flex items-center gap-1.5">
+                         <i data-lucide="settings" class="w-4 h-4"></i> Settings
+                     </a>
+                 </div>
+             </div>
+             <!-- Mobile menu -->
+             <div x-show="open" x-transition class="md:hidden mt-2 px-2">
+                 <a href="{% url 'dashboard' %}" class="{% if section == 'dashboard' %}bg-blue-700{% endif %} block px-3 py-2 rounded text-sm hover:bg-blue-700">
+                     <i data-lucide="layout-dashboard" class="w-4 h-4 mr-2"></i> Dashboard
+                 </a>
+                 <a href="{% url 'patient_list' %}" class="{% if section == 'patients' %}bg-blue-700{% endif %} block px-3 py-2 rounded text-sm hover:bg-blue-700">
+                     <i data-lucide="users" class="w-4 h-4 mr-2"></i> Patients
+                 </a>
+                 <a href="{% url 'invoice_list' %}" class="{% if section == 'billing' %}bg-blue-700{% endif %} block px-3 py-2 rounded text-sm hover:bg-blue-700">
+                     <i data-lucide="receipt" class="w-4 h-4 mr-2"></i> Billing
+                 </a>
+                 <a href="{% url 'clinic_settings' %}" class="{% if section == 'settings' %}bg-blue-700{% endif %} block px-3 py-2 rounded text-sm hover:bg-blue-700">
+                     <i data-lucide="settings" class="w-4 h-4 mr-2"></i> Settings
+                 </a>
+             </div>
+             <div class="flex items-center space-x-4 md:hidden">
+                 <span class="text-sm text-blue-200 inline-flex items-center gap-1.5">
+                     <i data-lucide="circle-user" class="w-4 h-4"></i> {{ user.username }}
+                 </span>
+                 <form method="post" action="{% url 'logout' %}" class="inline">
+                     {% csrf_token %}
+                     <button type="submit" class="text-sm bg-red-600 transition hover:bg-red-700 px-3 py-1.5 rounded inline-flex items-center gap-1.5">
+                         <i data-lucide="log-out" class="w-4 h-4"></i> Logout
+                     </button>
+                 </form>
+             </div>
+         </div>
+     </nav>
+     {% endif %}
 
     <main class="max-w-7xl mx-auto px-4 py-6">
         {% if messages %}

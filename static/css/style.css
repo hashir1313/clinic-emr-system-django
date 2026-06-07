@@ -1,1 +1,28 @@
 canvas { display: block; }
+
+/* Mobile menu styles */
+.mobile-menu-item {
+    @apply block w-full text-left px-3 py-2 rounded hover:bg-blue-700;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .main-content {
+        @apply px-2;
+    }
+    
+    /* Make buttons and inputs full width on small screens */
+    .btn-full, input.full, select.full, textarea.full {
+        @apply w-full;
+    }
+    
+    /* Adjust table containers */
+    .table-responsive {
+        @apply overflow-x-auto;
+    }
+    
+    /* Reduce padding in form elements */
+    .form-row {
+        @apply grid grid-cols-1 gap-4;
+    }
+}
