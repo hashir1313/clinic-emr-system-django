@@ -13,14 +13,14 @@ echo "Activating virtual environment..."
 source venv/bin/activate
 
 echo "Installing dependencies..."
-pip install -r requirements.txt
+pip install -r ../requirements.txt
 
 echo "Running database migrations..."
-python manage.py migrate
+python ../manage.py migrate
 
 echo ""
 echo "Creating admin account..."
-python manage.py createsuperuser
+python ../manage.py createsuperuser
 
 echo ""
 echo "=== Setup complete! ==="

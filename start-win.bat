@@ -4,9 +4,9 @@ cd /d "%~dp0"
 echo Pulling latest changes from GitHub...
 git pull
 
-echo Starting the Django development server...
+echo Starting the Django development server on 0.0.0.0:8000...
 call venv\Scripts\activate
-start /B python manage.py runserver
+start /B python manage.py runserver 0.0.0.0:8000
 
 timeout /t 2 /nobreak >nul
 
