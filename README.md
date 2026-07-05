@@ -236,31 +236,9 @@ Or simply run `bash Setup/setup.sh` which does all of the above automatically.
 - **Remaining** = total − paid amount
 - **Payment status**: remaining ≤ 0 → "Paid", paid > 0 → "Partial", otherwise "Unpaid"
 
-## Setup Scripts
+## Scripts
 
-The project includes convenience scripts for first-time setup:
-
-### `Setup/setup.bat` (Windows)
-```batch
-@echo off
-python -m venv venv
-call venv\Scripts\activate
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py createsuperuser
-python manage.py runserver
-```
-
-### `Setup/setup.sh` (Linux/Mac)
-```bash
-#!/bin/bash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py createsuperuser
-python manage.py runserver
-```
+The project includes convenience scripts to run the local server:
 
 ### `start-win.bat` (Windows — quick launch)
 ```batch
@@ -280,14 +258,6 @@ python manage.py runserver
 xdg-open http://localhost:8000
 ```
 
-## Deployment
-
-### Render.com
-1. Push code to GitHub
-2. Create new **Web Service** on Render
-3. Connect your repository
-4. **Build Command**: `pip install -r requirements.txt`
-5. **Start Command**: `python manage.py migrate --noinput && gunicorn clinic_emr.wsgi --bind 0.0.0.0:$PORT`
 
 ## Offline-First Design
 
