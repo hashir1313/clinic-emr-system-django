@@ -157,7 +157,7 @@ clinic-emr-system-django/
 
 ### Windows
 ```batch
-git clone <repo-url>
+git clone https://github.com/hashir1313/clinic-emr-system-django
 cd clinic-emr-system-django
 python -m venv venv
 venv\Scripts\activate
@@ -171,7 +171,7 @@ Or simply run `Setup/setup.bat` which does all of the above automatically.
 
 ### Linux / Mac
 ```bash
-git clone <repo-url>
+git clone https://github.com/hashir1313/clinic-emr-system-django
 cd clinic-emr-system-django
 python3 -m venv venv
 source venv/bin/activate
